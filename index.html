@@ -72,7 +72,7 @@ function render() {
       s.msg = ta.value; save();
       a.href = chatUrl(l, ta.value);
       const h = handle(l.tg);
-      app.href = DEMO ? 'tg://msg?text=' + encodeURIComponent(ta.value) : (h.startsWith('+') ? 'tg://resolve?phone=' + h.slice(1) : 'tg://resolve?domain=' + h) + '&text=' + encodeURIComponent(ta.value));
+      app.href = DEMO ? 'tg://msg?text=' + encodeURIComponent(ta.value) : (h.startsWith('+') ? 'tg://resolve?phone=' + h.slice(1) : 'tg://resolve?domain=' + h) + '&text=' + encodeURIComponent(ta.value);
     };
     ta.addEventListener('input', upd); upd();
     c.querySelector('.copy').onclick = e => { navigator.clipboard.writeText(ta.value); e.target.textContent = 'Скопировано'; };
