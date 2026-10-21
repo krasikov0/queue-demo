@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Очередь отправки</title>
+<style>
+:root{--bg:#0e0e10;--card:#17171a;--line:#2a2a30;--tx:#e8e6e1;--mute:#8d8a85;--red:#b3261e;--ok:#3d8b5a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 -apple-system,system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#0e0e10ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+h1{font-size:17px;margin:0;font-weight:600}.stat{color:var(--mute)}.stat b{color:var(--tx)}
+.warn{color:#e0a030}.btn{border:1px solid var(--line);background:#222;color:var(--tx);padding:9px 14px;border-radius:8px;cursor:pointer;font:inherit;text-decoration:none;display:inline-block}
+.btn:hover{background:#2c2c32}.btn.main{background:var(--red);border-color:var(--red);color:#fff}.btn.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.filters{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}.filters .btn{padding:6px 10px;font-size:13px}.filters .btn.sel{border-color:#fff}
+main{max-width:860px;margin:0 auto;padding:16px;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card.sent{opacity:.55}.card.replied{border-color:var(--ok)}
+.top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.n{color:var(--mute);font-variant-numeric:tabular-nums}
+.name{font-weight:600;font-size:16px}.tag{font-size:12px;color:var(--mute);border:1px solid var(--line);border-radius:20px;padding:1px 8px}
+textarea{width:100%;margin:10px 0;min-height:150px;background:#101013;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:10px;font:14px/1.45 inherit;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.det{color:var(--mute);font-size:13px}
+.det.bad{color:#e0a030}
+</style></head><body>
+<header>
+ <h1>Очередь отправки <span class="tag">демо</span></h1>
+ <span class="stat">Сегодня: <b id="today">0</b> / <span id="lim">15</span> <span id="w" class="warn"></span></span>
+ <span class="stat">Всего отправлено: <b id="all">0</b> / <span id="tot"></span> · ответили: <b id="rep">0</b></span>
+ <button class="btn main" id="next">Следующий →</button>
+ <div class="filters" id="f"></div>
+</header>
+<main id="list"></main>
+<script>
+const LEADS = [{"n": 1, "tg": "@demo_1", "name": "Dark Ink", "type": "мастер", "city": "Казань", "photos": "", "demo": "https://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань", "msg": "Макс, горячо приветствую!! Татуировки полный отпад, особенно дракон на предплечье, это реально кайф\n\nЛистаю ваш канал: все супер, но есть одно но. Ссылки на сайт я нигде не нашёл, а запись только через личку. Ну как так?)\n\nЯ делаю крутые сайтики, и тут подумал: зачем писать и спрашивать, интересно тебе или нет, если можно сразу прийти с готовым? Тоже не понимаю)\n\nВот, держи, собрал специально для тебя, серьезно, сам глянь:\n\nhttps://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань\n\nСтавишь ссылку в закреп/описание, человек смотрит работы, жмёт записаться, и заявка сразу падает тебе в телегу. Без переписки в личке (сильно экономит время) + крутейшая упаковка твоих лучших работ и тд.\n\nКстати, почти ни у кого из тату-мастеров сайта нет, так что тут реально можно утереть всем нос)\n\nГлянь, как тебе?", "detail": "дракон на предплечье"}, {"n": 2, "tg": "@demo_2", "name": "Black Mark Studio", "type": "студия", "city": "Екатеринбург", "photos": "", "demo": "https://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань", "msg": "Артём, горячо приветствую!! Татуировки полный отпад, особенно волк на бедре, это реально кайф\n\nЛистаю ваш канал: все супер, но есть одно но. Ссылки на сайт я нигде не нашёл, а запись только через личку. Ну как так?)\n\nЯ делаю крутые сайтики, и тут подумал: зачем писать и спрашивать, интересно тебе или нет, если можно сразу прийти с готовым? Тоже не понимаю)\n\nВот, держи, собрал специально для тебя, серьезно, сам глянь:\n\nhttps://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань\n\nСтавишь ссылку в закреп/описание, человек смотрит работы, жмёт записаться, и заявка сразу падает тебе в телегу. Без переписки в личке (сильно экономит время) + крутейшая упаковка твоих лучших работ и тд.\n\nКстати, почти ни у кого из тату-мастеров сайта нет, так что тут реально можно утереть всем нос)\n\nГлянь, как тебе?", "detail": "волк на бедре"}, {"n": 3, "tg": "@demo_3", "name": "Ilya Tattoo", "type": "мастер", "city": "Новосибирск", "photos": "", "demo": "https://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань", "msg": "Ильдар, горячо приветствую!! Татуировки полный отпад, особенно змея на плече, это реально кайф\n\nЛистаю ваш канал: все супер, но есть одно но. Ссылки на сайт я нигде не нашёл, а запись только через личку. Ну как так?)\n\nЯ делаю крутые сайтики, и тут подумал: зачем писать и спрашивать, интересно тебе или нет, если можно сразу прийти с готовым? Тоже не понимаю)\n\nВот, держи, собрал специально для тебя, серьезно, сам глянь:\n\nhttps://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань\n\nСтавишь ссылку в закреп/описание, человек смотрит работы, жмёт записаться, и заявка сразу падает тебе в телегу. Без переписки в личке (сильно экономит время) + крутейшая упаковка твоих лучших работ и тд.\n\nКстати, почти ни у кого из тату-мастеров сайта нет, так что тут реально можно утереть всем нос)\n\nГлянь, как тебе?", "detail": "змея на плече"}, {"n": 4, "tg": "@demo_4", "name": "Skull Club", "type": "студия", "city": "Казань", "photos": "", "demo": "https://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань", "msg": "Рома, горячо приветствую!! Татуировки полный отпад, особенно череп с розами, это реально кайф\n\nЛистаю ваш канал: все супер, но есть одно но. Ссылки на сайт я нигде не нашёл, а запись только через личку. Ну как так?)\n\nЯ делаю крутые сайтики, и тут подумал: зачем писать и спрашивать, интересно тебе или нет, если можно сразу прийти с готовым? Тоже не понимаю)\n\nВот, держи, собрал специально для тебя, серьезно, сам глянь:\n\nhttps://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань\n\nСтавишь ссылку в закреп/описание, человек смотрит работы, жмёт записаться, и заявка сразу падает тебе в телегу. Без переписки в личке (сильно экономит время) + крутейшая упаковка твоих лучших работ и тд.\n\nКстати, почти ни у кого из тату-мастеров сайта нет, так что тут реально можно утереть всем нос)\n\nГлянь, как тебе?", "detail": "череп с розами"}, {"n": 5, "tg": "@demo_5", "name": "Needle & Co", "type": "студия", "city": "Екатеринбург", "photos": "", "demo": "https://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань", "msg": "Саша, горячо приветствую!! Татуировки полный отпад, особенно твой стиль, это реально кайф\n\nЛистаю ваш канал: все супер, но есть одно но. Ссылки на сайт я нигде не нашёл, а запись только через личку. Ну как так?)\n\nЯ делаю крутые сайтики, и тут подумал: зачем писать и спрашивать, интересно тебе или нет, если можно сразу прийти с готовым? Тоже не понимаю)\n\nВот, держи, собрал специально для тебя, серьезно, сам глянь:\n\nhttps://tattoo-demo-zapis.netlify.app/?n=Dark%20Ink&c=Казань\n\nСтавишь ссылку в закреп/описание, человек смотрит работы, жмёт записаться, и заявка сразу падает тебе в телегу. Без переписки в личке (сильно экономит время) + крутейшая упаковка твоих лучших работ и тд.\n\nКстати, почти ни у кого из тату-мастеров сайта нет, так что тут реально можно утереть всем нос)\n\nГлянь, как тебе?", "detail": "нет фото"}];
+const LIMIT = 15;
+const KEY = 'queue-v1';
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+const day = () => new Date().toISOString().slice(0, 10);
+const st = n => S[n] || (S[n] = {});
+const handle = tg => tg.replace(/^@/, '');
+const DEMO = true;
+const chatUrl = (l, text) => DEMO ? 'https://t.me/share/url?url=%20&text=' + encodeURIComponent(text) : 'https://t.me/' + handle(l.tg) + '?text=' + encodeURIComponent(text);
+let filter = 'todo';
+
+function stats() {
+  const v = Object.values(S);
+  const t = v.filter(x => x.sentOn === day()).length;
+  document.getElementById('today').textContent = t;
+  document.getElementById('lim').textContent = LIMIT;
+  document.getElementById('w').textContent = t >= LIMIT ? '— на сегодня хватит, чтобы не поймать спам-ограничение' : '';
+  document.getElementById('all').textContent = v.filter(x => x.sent).length;
+  document.getElementById('rep').textContent = v.filter(x => x.replied).length;
+}
+function render() {
+  const box = document.getElementById('list'); box.innerHTML = '';
+  LEADS.forEach(l => {
+    const s = st(l.n);
+    if (filter === 'todo' && s.sent) return;
+    if (filter === 'sent' && !s.sent) return;
+    if (filter === 'replied' && !s.replied) return;
+    const c = document.createElement('div'); c.className = 'card' + (s.sent ? ' sent' : '') + (s.replied ? ' replied' : ''); c.id = 'c' + l.n;
+    const bad = /^нет/.test(l.detail);
+    c.innerHTML = `<div class="top"><span class="n">#${l.n}</span><span class="name"></span><span class="tag">${l.type}</span><span class="tag">${l.city}</span><span class="tag">${l.tg}</span></div>
+      <div class="det ${bad ? 'bad' : ''}">${bad ? 'Деталь общая — если успеешь, замени на конкретную работу' : 'Деталь: ' + l.detail}</div>
+      <textarea spellcheck="false"></textarea>
+      <div class="row"><a class="btn main" target="_blank" rel="noopener">Открыть чат</a>
+      <a class="btn app">В приложении</a><button class="btn copy">Скопировать</button>
+      <button class="btn sentb">${s.sent ? '✓ Отправил' : 'Отправил'}</button><button class="btn repb">${s.replied ? '✓ Ответил' : 'Ответил'}</button>
+      <a class="btn" href="${l.demo}" target="_blank" rel="noopener">Сайт</a></div>`;
+    c.querySelector('.name').textContent = l.name;
+    const ta = c.querySelector('textarea'); ta.value = s.msg || l.msg;
+    const a = c.querySelector('.main'), app = c.querySelector('.app');
+    const upd = () => {
+      s.msg = ta.value; save();
+      a.href = chatUrl(l, ta.value);
+      const h = handle(l.tg);
+      app.href = DEMO ? 'tg://msg?text=' + encodeURIComponent(ta.value) : (h.startsWith('+') ? 'tg://resolve?phone=' + h.slice(1) : 'tg://resolve?domain=' + h) + '&text=' + encodeURIComponent(ta.value));
+    };
+    ta.addEventListener('input', upd); upd();
+    c.querySelector('.copy').onclick = e => { navigator.clipboard.writeText(ta.value); e.target.textContent = 'Скопировано'; };
+    c.querySelector('.sentb').onclick = () => { s.sent = !s.sent; s.sentOn = s.sent ? day() : null; save(); stats(); render(); };
+    c.querySelector('.repb').onclick = () => { s.replied = !s.replied; if (s.replied) s.sent = s.sent || true, s.sentOn = s.sentOn || day(); save(); stats(); render(); };
+    box.appendChild(c);
+  });
+  if (!box.children.length) box.innerHTML = '<p class="stat">Здесь пусто.</p>';
+}
+document.getElementById('next').onclick = () => {
+  filter = 'todo'; renderFilters(); render();
+  const c = document.querySelector('.card'); if (c) { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); c.querySelector('.main').focus(); }
+};
+function renderFilters() {
+  const f = document.getElementById('f'); f.innerHTML = '';
+  [['todo', 'Осталось'], ['sent', 'Отправлено'], ['replied', 'Ответили'], ['all', 'Все']].forEach(([k, t]) => {
+    const b = document.createElement('button'); b.className = 'btn' + (filter === k ? ' sel' : ''); b.textContent = t;
+    b.onclick = () => { filter = k; renderFilters(); render(); }; f.appendChild(b);
+  });
+}
+document.getElementById('tot').textContent = LEADS.length;
+renderFilters(); stats(); render();
+</script></body></html>
